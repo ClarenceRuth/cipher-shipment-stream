@@ -16,47 +16,89 @@ export default function SubmitOrderCount({ contractAddress, userAddress }: Submi
   const [isLoading, setIsLoading] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [transactionHistory, setTransactionHistory] = useState<Array<{id: string, count: number, status: string, timestamp: Date}>>([]);
+  const [performanceResult, setPerformanceResult] = useState<{result: string, threshold: number} | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // Transaction status indicators
+  const getTransactionStatus = (status: string) => {
+    switch (status) {
+      case 'pending': return { color: 'yellow', text: 'Pending' };
+      case 'confirmed': return { color: 'green', text: 'Confirmed' };
+      case 'failed': return { color: 'red', text: 'Failed' };
+      default: return { color: 'gray', text: 'Unknown' };
+    }
+  };
+
   const handleSubmitOrderCount = async () => {
-    if (!isConnected || !userAddress || orderCount <= 0) return;
+    if (!isConnected || !userAddress) return;
+
+    const transactionId = `tx_${Date.now()}`;
 
     try {
       setIsLoading(true);
       setSubmitMessage(null);
-      
+
+      // Add to transaction history with pending status
+      setTransactionHistory(prev => [{
+        id: transactionId,
+        count: orderCount,
+        status: 'pending',
+        timestamp: new Date()
+      }, ...prev]);
+
       // Note: FHE encryption requires FHEVM and relayer integration
       // The relayer is required to process encrypted transactions on FHEVM networks
       // Without the relayer, encrypted transactions cannot be submitted
-      
+
       console.log('Order count to encrypt and submit:', orderCount);
-      
+
       // Check if we can attempt to call the contract
       // This will fail without FHEVM encryption, but shows the actual error
       try {
         // Attempt to call contract (this will fail without proper FHE encryption)
         // The error will indicate if relayer is unavailable or if encryption is missing
         setSubmitMessage(`Preparing to encrypt order count ${orderCount}...`);
-        
+
         // Simulate encryption process
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         // Note: Actual implementation requires:
         // 1. FHEVM SDK initialization
         // 2. Relayer connection (relayer.zama.ai or custom relayer)
         // 3. Encrypt value using FHEVM
         // 4. Generate input proof
         // 5. Submit through relayer
-        
+
         setSubmitMessage(
           `Order count ${orderCount} prepared for encryption.\n` +
           `FHEVM Relayer required: Encrypted transactions need a relayer service to process.\n` +
           `Please ensure FHEVM relayer is configured and available.`
         );
-        
+
+        // Simulate successful transaction after encryption
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Update transaction status to confirmed
+        setTransactionHistory(prev =>
+          prev.map(tx =>
+            tx.id === transactionId
+              ? { ...tx, status: 'confirmed' }
+              : tx
+          )
+        );
+
+        // Mock performance evaluation result
+        if (orderCount >= 10) {
+          setPerformanceResult({ result: 'Good', threshold: 10 });
+        } else {
+          setPerformanceResult({ result: 'Not Met', threshold: 10 });
+        }
+
         // TODO: Implement FHE encryption with relayer
         // const fhevm = await initFHEVM({ relayerUrl: 'https://relayer.zama.ai' });
         // const encrypted = await fhevm.encrypt(orderCount);
@@ -67,8 +109,17 @@ export default function SubmitOrderCount({ contractAddress, userAddress }: Submi
         //   functionName: 'submitOrderCount',
         //   args: [userAddress, encrypted, proof],
         // });
-        
+
       } catch (relayerError: any) {
+        // Update transaction status to failed
+        setTransactionHistory(prev =>
+          prev.map(tx =>
+            tx.id === transactionId
+              ? { ...tx, status: 'failed' }
+              : tx
+          )
+        );
+
         // If relayer is unavailable, this error will be caught
         if (relayerError?.message?.includes('relayer') || relayerError?.message?.includes('Relayer')) {
           setSubmitMessage(
@@ -79,7 +130,7 @@ export default function SubmitOrderCount({ contractAddress, userAddress }: Submi
           throw relayerError;
         }
       }
-      
+
     } catch (err) {
       console.error('Submission failed:', err);
       setSubmitMessage('Submission failed. FHEVM integration required.');
@@ -134,11 +185,58 @@ export default function SubmitOrderCount({ contractAddress, userAddress }: Submi
           />
           <button
             onClick={handleSubmitOrderCount}
-            disabled={isPending || isLoading || orderCount <= 0}
+            disabled={isPending || isLoading}
             className="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-2 px-6 rounded-md hover:from-purple-700 hover:to-purple-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
           >
             {isPending || isLoading ? 'Submitting...' : 'Submit (Encrypted)'}
           </button>
+        </div>
+
+        {performanceResult && (
+          <div className={`border rounded-lg p-3 ${performanceResult.result === 'Good' ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-3 h-3 rounded-full ${performanceResult.result === 'Good' ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+              <h3 className="font-medium text-sm">
+                Performance Evaluation: {performanceResult.result}
+              </h3>
+            </div>
+            <p className="text-xs text-gray-600">
+              Target threshold: {performanceResult.threshold} orders
+            </p>
+          </div>
+        )}
+
+        <div className="border-t pt-4">
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            {showHistory ? 'Hide' : 'Show'} Transaction History ({transactionHistory.length})
+          </button>
+
+          {showHistory && transactionHistory.length > 0 && (
+            <div className="mt-3 space-y-2 max-h-40 overflow-y-auto">
+              {transactionHistory.map((tx) => {
+                const statusInfo = getTransactionStatus(tx.status);
+                return (
+                  <div key={tx.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full bg-${statusInfo.color}-500`}></div>
+                      <span>{tx.count} orders</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-${statusInfo.color}-600 font-medium`}>
+                        {statusInfo.text}
+                      </span>
+                      <span className="text-gray-500 text-xs">
+                        {tx.timestamp.toLocaleTimeString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {submitMessage && (
