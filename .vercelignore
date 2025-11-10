@@ -1,0 +1,28 @@
+# Vercel ignore file
+# Files and directories to exclude from Vercel deployment
+
+# Hardhat and contract files (not needed for frontend deployment)
+contracts/
+deploy/
+tasks/
+test/
+hardhat.config.ts
+artifacts/
+cache/
+types/
+deployments/
+fhevmTemp/
+
+# Root package files only (NOT frontend/package.json - that's needed!)
+/package.json
+/package-lock.json
+/tsconfig.json
+/node_modules/
+
+# Documentation (optional, can be included)
+README.md
+LICENSE
+.eslintrc.yml
+.prettierrc.yml
+.solhint.json
+
