@@ -96,7 +96,7 @@ contract DriverPerformance is SepoliaConfig {
 
     /// @notice Batch register multiple drivers in the system
     /// @param drivers Array of driver addresses to register
-    function batchRegisterDrivers(address[] calldata drivers) external {
+    function batchRegisterDrivers(address[] calldata drivers) external onlyOwner {
         if (drivers.length == 0) revert EmptyDriverList();
         if (drivers.length > MAX_BATCH_SIZE) revert BatchSizeTooLarge();
 
@@ -204,7 +204,7 @@ contract DriverPerformance is SepoliaConfig {
 
     /// @notice Set the target threshold for performance evaluation
     /// @param _newThreshold The new target threshold value
-    function setTargetThreshold(uint32 _newThreshold) external {
+    function setTargetThreshold(uint32 _newThreshold) external onlyOwner {
         uint32 oldThreshold = targetThreshold;
         targetThreshold = _newThreshold;
         cachedThreshold = _newThreshold; // Gas optimization: update cache
@@ -242,21 +242,21 @@ contract DriverPerformance is SepoliaConfig {
 
     /// @notice Emergency pause the contract
     /// @dev Only owner can pause, prevents critical operations during emergencies
-    function pause() external whenNotPaused {
+    function pause() external onlyOwner whenNotPaused {
         paused = true;
         emit ContractPaused(msg.sender, block.timestamp);
     }
 
     /// @notice Resume contract operations
     /// @dev Only owner can unpause, restores normal functionality
-    function unpause() external whenPaused {
+    function unpause() external onlyOwner whenPaused {
         paused = false;
         emit ContractUnpaused(msg.sender, block.timestamp);
     }
 
     /// @notice Transfer contract ownership to a new address
     /// @param newOwner Address of the new owner
-    function transferOwnership(address newOwner) external {
+    function transferOwnership(address newOwner) external onlyOwner {
         if (newOwner == address(0)) revert InvalidAddress();
         address oldOwner = owner;
         owner = newOwner;
@@ -265,7 +265,7 @@ contract DriverPerformance is SepoliaConfig {
 
     /// @notice Renounce ownership of the contract
     /// @dev Leaves the contract without owner, removing access control
-    function renounceOwnership() external {
+    function renounceOwnership() external onlyOwner {
         address oldOwner = owner;
         owner = address(0);
         emit OwnershipTransferred(oldOwner, address(0), block.timestamp);
