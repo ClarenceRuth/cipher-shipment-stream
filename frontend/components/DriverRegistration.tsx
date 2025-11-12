@@ -19,28 +19,41 @@ export default function DriverRegistration({ contractAddress }: DriverRegistrati
   const [isLoading, setIsLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Enhanced validation function
+  // Enhanced validation function with input sanitization
   const validateInputs = () => {
     const errors: string[] = [];
 
+    // Input sanitization: Remove potentially dangerous characters
+    const sanitizedName = driverName.replace(/[<>\"'&]/g, '');
+    const sanitizedAddress = driverAddress.trim();
+    const sanitizedLicense = licenseNumber.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+    // Update sanitized values
+    if (sanitizedName !== driverName) setDriverName(sanitizedName);
+    if (sanitizedAddress !== driverAddress) setDriverAddress(sanitizedAddress);
+    if (sanitizedLicense !== licenseNumber) setLicenseNumber(sanitizedLicense);
+
     // Check if address is valid Ethereum address
-    if (!/^0x[a-fA-F0-9]{40}$/.test(driverAddress)) {
+    if (!/^0x[a-fA-F0-9]{40}$/.test(sanitizedAddress)) {
       errors.push('Invalid Ethereum address format');
     }
 
-    // Check driver name length
-    if (driverName.length < 2 || driverName.length > 50) {
+    // Check driver name length and content
+    if (sanitizedName.length < 2 || sanitizedName.length > 50) {
       errors.push('Driver name must be between 2-50 characters');
+    }
+    if (/[<>\"'&]/.test(driverName)) {
+      errors.push('Driver name contains invalid characters');
     }
 
     // Check license number format
-    if (!/^[A-Z0-9]{6,12}$/.test(licenseNumber)) {
+    if (!/^[A-Z0-9]{6,12}$/.test(sanitizedLicense)) {
       errors.push('License number must be 6-12 alphanumeric characters');
     }
 
     // Check for duplicate registration attempts
     // This would normally check against a backend/database
-    if (driverAddress === address) {
+    if (sanitizedAddress === address) {
       errors.push('Cannot register yourself as a driver');
     }
 
