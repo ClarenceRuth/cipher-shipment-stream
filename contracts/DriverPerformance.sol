@@ -49,13 +49,15 @@ contract DriverPerformance is SepoliaConfig {
     uint256 private constant GAS_BUFFER = 30000;
 
     // Events
-    event OrderCountSubmitted(address indexed driver, address indexed submitter);
-    event PerformanceEvaluated(address indexed driver);
-    event TargetThresholdUpdated(uint32 oldThreshold, uint32 newThreshold);
-    event DriverRegistered(address indexed driver);
-    event ContractPaused(address indexed account);
-    event ContractUnpaused(address indexed account);
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OrderCountSubmitted(address indexed driver, address indexed submitter, uint256 timestamp);
+    event PerformanceEvaluated(address indexed driver, bool result, uint32 threshold, uint256 timestamp);
+    event TargetThresholdUpdated(uint32 oldThreshold, uint32 newThreshold, address indexed updater, uint256 timestamp);
+    event DriverRegistered(address indexed driver, address indexed registrar, uint256 timestamp);
+    event DriverDeregistered(address indexed driver, address indexed deregistrar, uint256 timestamp);
+    event BatchOperationCompleted(string operation, uint256 count, address indexed operator, uint256 timestamp);
+    event ContractPaused(address indexed account, uint256 timestamp);
+    event ContractUnpaused(address indexed account, uint256 timestamp);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner, uint256 timestamp);
     
     // Modifiers
     modifier onlyOwner() {
@@ -89,7 +91,7 @@ contract DriverPerformance is SepoliaConfig {
         registeredDrivers[driver] = true;
         registeredDriverList.push(driver);
         cachedDriverCount = registeredDriverList.length; // Gas optimization: update cache
-        emit DriverRegistered(driver);
+        emit DriverRegistered(driver, msg.sender, block.timestamp);
     }
 
     /// @notice Batch register multiple drivers in the system
@@ -108,7 +110,7 @@ contract DriverPerformance is SepoliaConfig {
                 registeredDrivers[driver] = true;
                 registeredDriverList.push(driver);
                 newRegistrations++;
-                emit DriverRegistered(driver);
+                emit DriverRegistered(driver, msg.sender, block.timestamp);
 
                 // Gas optimization: Break if gas is running low
                 if (gasleft() < GAS_BUFFER) break;
@@ -118,30 +120,138 @@ contract DriverPerformance is SepoliaConfig {
         // Gas optimization: Update cache only once
         if (newRegistrations > 0) {
             cachedDriverCount = registeredDriverList.length;
+            emit BatchOperationCompleted("batch_register", newRegistrations, msg.sender, block.timestamp);
         }
     }
-    
+
+    /// @notice Deregister a driver from the system
+    /// @param driver Address of the driver to deregister
+    function deregisterDriver(address driver) external {
+        if (driver == address(0)) revert InvalidAddress();
+        if (!registeredDrivers[driver]) revert UnauthorizedAccess();
+
+        // Remove from registered drivers mapping
+        registeredDrivers[driver] = false;
+
+        // Remove from the registered driver list (swap with last element for gas efficiency)
+        uint256 driverIndex = 0;
+        bool found = false;
+        for (uint256 i = 0; i < registeredDriverList.length; i++) {
+            if (registeredDriverList[i] == driver) {
+                driverIndex = i;
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            // Swap with last element and pop
+            uint256 lastIndex = registeredDriverList.length - 1;
+            if (driverIndex != lastIndex) {
+                registeredDriverList[driverIndex] = registeredDriverList[lastIndex];
+            }
+            registeredDriverList.pop();
+            cachedDriverCount = registeredDriverList.length;
+        }
+
+        // Clear driver's data
+        delete driverOrderCounts[driver];
+        delete driverPerformanceResults[driver];
+
+        emit DriverDeregistered(driver, msg.sender, block.timestamp);
+    }
+
+    /// @notice Batch deregister multiple drivers
+    /// @param drivers Array of driver addresses to deregister
+    function batchDeregisterDrivers(address[] calldata drivers) external {
+        if (drivers.length == 0) revert EmptyDriverList();
+        if (drivers.length > MAX_BATCH_SIZE) revert BatchSizeTooLarge();
+
+        uint256 deregisteredCount = 0;
+
+        for (uint256 i = 0; i < drivers.length; i++) {
+            address driver = drivers[i];
+            if (driver != address(0) && registeredDrivers[driver]) {
+                // Remove from registered drivers mapping
+                registeredDrivers[driver] = false;
+
+                // Remove from list (simplified for batch operation)
+                for (uint256 j = 0; j < registeredDriverList.length; j++) {
+                    if (registeredDriverList[j] == driver) {
+                        registeredDriverList[j] = registeredDriverList[registeredDriverList.length - 1];
+                        registeredDriverList.pop();
+                        break;
+                    }
+                }
+
+                // Clear driver's data
+                delete driverOrderCounts[driver];
+                delete driverPerformanceResults[driver];
+
+                deregisteredCount++;
+                emit DriverDeregistered(driver, msg.sender, block.timestamp);
+
+                // Gas optimization: Break if gas is running low
+                if (gasleft() < GAS_BUFFER) break;
+            }
+        }
+
+        if (deregisteredCount > 0) {
+            cachedDriverCount = registeredDriverList.length;
+            emit BatchOperationCompleted("batch_deregister", deregisteredCount, msg.sender, block.timestamp);
+        }
+    }
+
     /// @notice Set the target threshold for performance evaluation
     /// @param _newThreshold The new target threshold value
     function setTargetThreshold(uint32 _newThreshold) external {
         uint32 oldThreshold = targetThreshold;
         targetThreshold = _newThreshold;
         cachedThreshold = _newThreshold; // Gas optimization: update cache
-        emit TargetThresholdUpdated(oldThreshold, _newThreshold);
+        emit TargetThresholdUpdated(oldThreshold, _newThreshold, msg.sender, block.timestamp);
+    }
+
+    /// @notice Increment the target threshold by a specified amount
+    /// @param increment The amount to increment the threshold
+    function incrementThreshold(uint32 increment) external {
+        uint32 newThreshold = targetThreshold + increment;
+        uint32 oldThreshold = targetThreshold;
+        targetThreshold = newThreshold;
+        cachedThreshold = newThreshold;
+        emit TargetThresholdUpdated(oldThreshold, newThreshold, msg.sender, block.timestamp);
+    }
+
+    /// @notice Decrement the target threshold by a specified amount
+    /// @param decrement The amount to decrement the threshold
+    function decrementThreshold(uint32 decrement) external {
+        uint32 newThreshold = targetThreshold - decrement;
+        uint32 oldThreshold = targetThreshold;
+        targetThreshold = newThreshold;
+        cachedThreshold = newThreshold;
+        emit TargetThresholdUpdated(oldThreshold, newThreshold, msg.sender, block.timestamp);
+    }
+
+    /// @notice Reset threshold to default value (10)
+    function resetThresholdToDefault() external {
+        uint32 oldThreshold = targetThreshold;
+        uint32 defaultThreshold = 10;
+        targetThreshold = defaultThreshold;
+        cachedThreshold = defaultThreshold;
+        emit TargetThresholdUpdated(oldThreshold, defaultThreshold, msg.sender, block.timestamp);
     }
 
     /// @notice Emergency pause the contract
     /// @dev Only owner can pause, prevents critical operations during emergencies
     function pause() external whenNotPaused {
         paused = true;
-        emit ContractPaused(msg.sender);
+        emit ContractPaused(msg.sender, block.timestamp);
     }
 
     /// @notice Resume contract operations
     /// @dev Only owner can unpause, restores normal functionality
     function unpause() external whenPaused {
         paused = false;
-        emit ContractUnpaused(msg.sender);
+        emit ContractUnpaused(msg.sender, block.timestamp);
     }
 
     /// @notice Transfer contract ownership to a new address
@@ -150,7 +260,7 @@ contract DriverPerformance is SepoliaConfig {
         if (newOwner == address(0)) revert InvalidAddress();
         address oldOwner = owner;
         owner = newOwner;
-        emit OwnershipTransferred(oldOwner, newOwner);
+        emit OwnershipTransferred(oldOwner, newOwner, block.timestamp);
     }
 
     /// @notice Renounce ownership of the contract
@@ -158,7 +268,7 @@ contract DriverPerformance is SepoliaConfig {
     function renounceOwnership() external {
         address oldOwner = owner;
         owner = address(0);
-        emit OwnershipTransferred(oldOwner, address(0));
+        emit OwnershipTransferred(oldOwner, address(0), block.timestamp);
     }
     
     /// @notice Submit encrypted order completion count for a driver
@@ -183,7 +293,7 @@ contract DriverPerformance is SepoliaConfig {
         FHE.allow(orderCount, driver); // Driver can decrypt their own count
         FHE.allow(orderCount, msg.sender); // Submitter can also decrypt
         
-        emit OrderCountSubmitted(driver, msg.sender);
+        emit OrderCountSubmitted(driver, msg.sender, block.timestamp);
     }
     
     /// @notice Get encrypted order count for a driver
@@ -246,7 +356,7 @@ contract DriverPerformance is SepoliaConfig {
         FHE.allowThis(isGood);
         FHE.allow(isGood, driver); // Driver can decrypt their performance result
 
-        emit PerformanceEvaluated(driver);
+        emit PerformanceEvaluated(driver, FHE.decrypt(isGood), targetThreshold, block.timestamp);
 
         return isGood;
     }
