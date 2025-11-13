@@ -35,7 +35,7 @@ export default function SubmitOrderCount({ contractAddress, userAddress }: Submi
   };
 
   const handleSubmitOrderCount = async () => {
-    if (!isConnected || !userAddress) return;
+    if (!isConnected || !userAddress || orderCount <= 0) return;
 
     const transactionId = `tx_${Date.now()}`;
 
