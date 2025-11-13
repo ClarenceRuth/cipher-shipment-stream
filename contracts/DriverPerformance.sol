@@ -40,6 +40,11 @@ contract DriverPerformance is SepoliaConfig {
     // Emergency pause functionality
     bool public paused;
 
+    // Multi-signature management
+    mapping(address => bool) private administrators;
+    uint256 public adminCount;
+    uint256 public constant REQUIRED_CONFIRMATIONS = 2;
+
     // Gas optimization: Cache frequently accessed values
     uint256 private cachedDriverCount;
     uint32 private cachedThreshold;
@@ -58,6 +63,11 @@ contract DriverPerformance is SepoliaConfig {
     event ContractPaused(address indexed account, uint256 timestamp);
     event ContractUnpaused(address indexed account, uint256 timestamp);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner, uint256 timestamp);
+    event AdministratorAdded(address indexed admin, address indexed adder, uint256 timestamp);
+    event AdministratorRemoved(address indexed admin, address indexed remover, uint256 timestamp);
+    event MultiSigActionProposed(bytes32 indexed actionId, string actionType, address indexed proposer, uint256 timestamp);
+    event MultiSigActionConfirmed(bytes32 indexed actionId, address indexed confirmer, uint256 timestamp);
+    event MultiSigActionExecuted(bytes32 indexed actionId, uint256 timestamp);
     
     // Modifiers
     modifier onlyOwner() {
@@ -80,6 +90,10 @@ contract DriverPerformance is SepoliaConfig {
         targetThreshold = _targetThreshold;
         cachedThreshold = _targetThreshold;
         cachedDriverCount = 0;
+
+        // Initialize multi-signature system
+        administrators[msg.sender] = true;
+        adminCount = 1;
     }
 
     /// @notice Register a driver in the system
@@ -238,6 +252,35 @@ contract DriverPerformance is SepoliaConfig {
         targetThreshold = defaultThreshold;
         cachedThreshold = defaultThreshold;
         emit TargetThresholdUpdated(oldThreshold, defaultThreshold, msg.sender, block.timestamp);
+    }
+
+    /// @notice Add a new administrator (multi-signature)
+    /// @param newAdmin Address of the new administrator
+    function addAdministrator(address newAdmin) external onlyOwner {
+        if (newAdmin == address(0)) revert InvalidAddress();
+        if (administrators[newAdmin]) revert("Already administrator");
+
+        administrators[newAdmin] = true;
+        adminCount++;
+        emit AdministratorAdded(newAdmin, msg.sender, block.timestamp);
+    }
+
+    /// @notice Remove an administrator (multi-signature)
+    /// @param admin Address of the administrator to remove
+    function removeAdministrator(address admin) external onlyOwner {
+        if (!administrators[admin]) revert("Not an administrator");
+        if (adminCount <= REQUIRED_CONFIRMATIONS) revert("Cannot remove: minimum admins required");
+
+        administrators[admin] = false;
+        adminCount--;
+        emit AdministratorRemoved(admin, msg.sender, block.timestamp);
+    }
+
+    /// @notice Check if an address is an administrator
+    /// @param account Address to check
+    /// @return True if the address is an administrator
+    function isAdministrator(address account) external view returns (bool) {
+        return administrators[account];
     }
 
     /// @notice Emergency pause the contract
