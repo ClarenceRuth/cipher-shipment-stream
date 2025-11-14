@@ -53,6 +53,16 @@ contract DriverPerformance is SepoliaConfig {
     uint256 private constant MAX_BATCH_SIZE = 100;
     uint256 private constant GAS_BUFFER = 30000;
 
+    // Dynamic threshold adjustment
+    struct PerformanceMetrics {
+        uint256 totalEvaluations;
+        uint256 goodPerformances;
+        uint256 lastAdjustmentTime;
+        uint32 adjustmentFactor;
+    }
+
+    PerformanceMetrics private performanceMetrics;
+
     // Events
     event OrderCountSubmitted(address indexed driver, address indexed submitter, uint256 timestamp);
     event PerformanceEvaluated(address indexed driver, bool result, uint32 threshold, uint256 timestamp);
@@ -94,6 +104,9 @@ contract DriverPerformance is SepoliaConfig {
         // Initialize multi-signature system
         administrators[msg.sender] = true;
         adminCount = 1;
+
+        // Initialize performance metrics
+        performanceMetrics.adjustmentFactor = 100; // 100% = no adjustment
     }
 
     /// @notice Register a driver in the system
@@ -283,6 +296,54 @@ contract DriverPerformance is SepoliaConfig {
         return administrators[account];
     }
 
+    /// @notice Adjust threshold dynamically based on performance metrics
+    function adjustThresholdDynamically() private {
+        if (performanceMetrics.totalEvaluations < 10) return;
+
+        uint256 successRate = (performanceMetrics.goodPerformances * 100) / performanceMetrics.totalEvaluations;
+        uint32 oldThreshold = targetThreshold;
+
+        // Dynamic adjustment algorithm
+        if (successRate > 80) {
+            // High success rate: increase threshold by 10%
+            uint32 newThreshold = (targetThreshold * 110) / 100;
+            if (newThreshold > 1000) newThreshold = 1000; // Cap at 1000
+            targetThreshold = newThreshold;
+            cachedThreshold = newThreshold;
+        } else if (successRate < 50) {
+            // Low success rate: decrease threshold by 10%
+            uint32 newThreshold = (targetThreshold * 90) / 100;
+            if (newThreshold < 1) newThreshold = 1; // Minimum 1
+            targetThreshold = newThreshold;
+            cachedThreshold = newThreshold;
+        }
+
+        // Reset metrics for next adjustment period
+        if (targetThreshold != oldThreshold) {
+            performanceMetrics.lastAdjustmentTime = block.timestamp;
+            emit TargetThresholdUpdated(oldThreshold, targetThreshold, address(this), block.timestamp);
+        }
+
+        // Reset counters for next evaluation period
+        performanceMetrics.totalEvaluations = 0;
+        performanceMetrics.goodPerformances = 0;
+    }
+
+    /// @notice Get current performance metrics
+    /// @return totalEvaluations Total number of evaluations
+    /// @return goodPerformances Number of good performances
+    /// @return successRate Success rate percentage
+    function getPerformanceMetrics() external view returns (uint256 totalEvaluations, uint256 goodPerformances, uint256 successRate) {
+        totalEvaluations = performanceMetrics.totalEvaluations;
+        goodPerformances = performanceMetrics.goodPerformances;
+        successRate = performanceMetrics.totalEvaluations > 0 ? (performanceMetrics.goodPerformances * 100) / performanceMetrics.totalEvaluations : 0;
+    }
+
+    /// @notice Manually trigger threshold adjustment (admin only)
+    function triggerThresholdAdjustment() external onlyOwner {
+        adjustThresholdDynamically();
+    }
+
     /// @notice Emergency pause the contract
     /// @dev Only owner can pause, prevents critical operations during emergencies
     function pause() external onlyOwner whenNotPaused {
@@ -395,11 +456,22 @@ contract DriverPerformance is SepoliaConfig {
         // Store the result
         driverPerformanceResults[driver] = isGood;
 
+        // Update performance metrics
+        performanceMetrics.totalEvaluations++;
+        if (FHE.decrypt(isGood)) {
+            performanceMetrics.goodPerformances++;
+        }
+
         // Grant access permissions for the result
         FHE.allowThis(isGood);
         FHE.allow(isGood, driver); // Driver can decrypt their performance result
 
         emit PerformanceEvaluated(driver, FHE.decrypt(isGood), targetThreshold, block.timestamp);
+
+        // Check if threshold adjustment is needed (every 10 evaluations)
+        if (performanceMetrics.totalEvaluations % 10 == 0) {
+            adjustThresholdDynamically();
+        }
 
         return isGood;
     }
