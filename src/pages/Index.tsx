@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { ShipmentTimeline } from "@/components/ShipmentTimeline";
 import { UploadForm } from "@/components/UploadForm";
+import { SubmissionHistory } from "@/components/SubmissionHistory";
 import { Footer } from "@/components/Footer";
 
 const Index = () => {
@@ -11,6 +12,7 @@ const Index = () => {
       <main className="flex-1">
         <Hero />
         <UploadForm />
+        <SubmissionHistory />
         <ShipmentTimeline />
       </main>
       <Footer />
