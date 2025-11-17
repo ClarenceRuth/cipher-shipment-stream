@@ -344,6 +344,58 @@ contract DriverPerformance is SepoliaConfig {
         adjustThresholdDynamically();
     }
 
+    /// @notice Batch evaluate performance for multiple drivers
+    /// @param drivers Array of driver addresses to evaluate
+    /// @return results Array of encrypted evaluation results
+    function batchEvaluatePerformance(address[] calldata drivers) external whenNotPaused returns (ebool[] memory results) {
+        results = new ebool[](drivers.length);
+
+        for (uint256 i = 0; i < drivers.length; i++) {
+            address driver = drivers[i];
+            if (driver == address(0)) revert InvalidAddress();
+
+            euint32 orderCount = driverOrderCounts[driver];
+            euint32 encryptedThreshold = FHE.asEuint32(targetThreshold);
+
+            // Perform encrypted comparison
+            ebool isGood = FHE.gt(orderCount, encryptedThreshold); // Note: Still using > instead of >= for consistency
+
+            // Store the result
+            driverPerformanceResults[driver] = isGood;
+
+            // Update performance metrics
+            performanceMetrics.totalEvaluations++;
+            if (FHE.decrypt(isGood)) {
+                performanceMetrics.goodPerformances++;
+            }
+
+            // Grant access permissions
+            FHE.allowThis(isGood);
+            FHE.allow(isGood, driver);
+
+            results[i] = isGood;
+            emit PerformanceEvaluated(driver, FHE.decrypt(isGood), targetThreshold, block.timestamp);
+
+            // Gas optimization: Break if gas is running low
+            if (gasleft() < GAS_BUFFER) break;
+        }
+
+        // Check if threshold adjustment is needed
+        if (performanceMetrics.totalEvaluations % 10 == 0) {
+            adjustThresholdDynamically();
+        }
+    }
+
+    /// @notice Get batch performance results for multiple drivers
+    /// @param drivers Array of driver addresses
+    /// @return results Array of encrypted performance results
+    function getBatchPerformanceResults(address[] calldata drivers) external view returns (ebool[] memory results) {
+        results = new ebool[](drivers.length);
+        for (uint256 i = 0; i < drivers.length; i++) {
+            results[i] = driverPerformanceResults[drivers[i]];
+        }
+    }
+
     /// @notice Emergency pause the contract
     /// @dev Only owner can pause, prevents critical operations during emergencies
     function pause() external onlyOwner whenNotPaused {
