@@ -128,7 +128,7 @@ export default function DriverRegistration({ contractAddress }: DriverRegistrati
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-4 md:p-6 max-w-2xl mx-auto">
+    <div className="bg-white shadow-lg rounded-lg p-4 md:p-6 max-w-2xl mx-auto w-full">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800">Driver Registration</h2>
         <div className="flex items-center space-x-2">
@@ -154,7 +154,7 @@ export default function DriverRegistration({ contractAddress }: DriverRegistrati
       )}
 
       <div className="space-y-4 md:space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
           <div>
             <label htmlFor="driverName" className="block text-sm font-medium text-gray-700 mb-2">
               Driver Name *
