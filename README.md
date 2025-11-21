@@ -444,6 +444,24 @@ This project is licensed under the BSD-3-Clause-Clear License - see the [LICENSE
 - Zama FHEVM ecosystem
 - Open-source contributors and reviewers
 
+## 🎬 Demo Video
+
+Watch our comprehensive demonstration video showcasing the full workflow of the Driver Performance Evaluation System:
+
+### 📹 [View Demo Video](./logistics.mp4)
+
+**Video Contents:**
+- Complete system walkthrough from driver registration to performance evaluation
+- Live demonstration of FHE encryption and privacy-preserving computations
+- Real-time analytics dashboard with performance visualizations
+- Mobile-responsive interface testing across different devices
+- Security features demonstration with encrypted data handling
+- Batch operations and administrative controls overview
+
+**Duration:** ~5 minutes  
+**Format:** MP4 (H.264)  
+**Resolution:** 1920x1080 (Full HD)
+
 ---
 
 <div align="center">
