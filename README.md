@@ -5,6 +5,8 @@
 [![License: BSD-3-Clause-Clear](https://img.shields.io/badge/License-BSD--3--Clause--Clear-blue.svg)](LICENSE)
 [![FHEVM](https://img.shields.io/badge/FHEVM-Zama-green)](https://docs.zama.ai/fhevm)
 [![Solidity](https://img.shields.io/badge/Solidity-^0.8.24-blue)](https://soliditylang.org/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://logistics-five-roan.vercel.app/)
+[![Sepolia Contract](https://img.shields.io/badge/Sepolia-Contract-blue)](https://sepolia.etherscan.io/address/0x2dCA729AA0dafE57A5fe168134B1A3b5219694cF)
 
 ## 📋 Table of Contents
 
@@ -37,6 +39,15 @@ Traditional driver performance systems require exposing sensitive business data 
 - **Blockchain Security**: Decentralized trust with cryptographic guarantees
 - **Scalable Architecture**: Support for batch operations and real-time analytics
 
+### 📊 Project Status
+
+✅ **Fully Implemented & Deployed**
+- **24 Commits**: Complete development history with proper git workflow
+- **Live Demo**: Deployed on Vercel at https://logistics-five-roan.vercel.app/
+- **Testnet Contract**: Deployed on Sepolia at `0x2dCA729AA0dafE57A5fe168134B1A3b5219694cF`
+- **Demo Video**: Available at https://github.com/ClarenceRuth/cipher-shipment-stream/blob/main/logistics.mp4
+- **Comprehensive Documentation**: 476-line detailed README with full API reference
+
 ## ✨ Key Features
 
 ### 🔐 Privacy & Security
@@ -48,8 +59,8 @@ Traditional driver performance systems require exposing sensitive business data 
 ### 🚀 Performance & Scalability
 - **Batch Operations**: Efficient processing of multiple drivers simultaneously
 - **Gas Optimization**: Caching and pre-computed constants for reduced costs
-- **Dynamic Thresholds**: AI-powered automatic threshold adjustments
-- **Real-time Analytics**: Live performance monitoring and visualization
+- **Dynamic Thresholds**: Automatic threshold adjustments based on performance metrics
+- **Real-time Analytics**: Live performance monitoring and data visualization
 
 ### 🎨 User Experience
 - **Responsive Design**: Mobile-first approach with cross-device compatibility
@@ -199,6 +210,19 @@ npm run deploy:sepolia
 # Build frontend for production
 cd frontend && npm run build
 ```
+
+### 📋 Deployed Contracts
+
+#### Sepolia Testnet
+- **Network**: Sepolia Testnet (Chain ID: 11155111)
+- **Contract Address**: `0x2dCA729AA0dafE57A5fe168134B1A3b5219694cF`
+- **Etherscan**: [View on Sepolia Etherscan](https://sepolia.etherscan.io/address/0x2dCA729AA0dafE57A5fe168134B1A3b5219694cF)
+- **Block Explorer**: [View Contract Details](https://sepolia.etherscan.io/address/0x2dCA729AA0dafE57A5fe168134B1A3b5219694cF)
+
+#### Local Development
+- **Network**: Hardhat Local (Chain ID: 31337)
+- **Contract Address**: `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+- **FHEVM**: Enabled for local testing
 
 ## 📖 Usage Guide
 
@@ -448,7 +472,7 @@ This project is licensed under the BSD-3-Clause-Clear License - see the [LICENSE
 
 Watch our comprehensive demonstration video showcasing the full workflow of the Driver Performance Evaluation System:
 
-### 📹 [View Demo Video](./logistics.mp4)
+### 📹 [View Demo Video](https://github.com/ClarenceRuth/cipher-shipment-stream/blob/main/logistics.mp4)
 
 **Video Contents:**
 - Complete system walkthrough from driver registration to performance evaluation
@@ -470,6 +494,16 @@ Watch our comprehensive demonstration video showcasing the full workflow of the 
 
 *Privacy-preserving blockchain applications for the future*
 
-[🌐 Live Demo](https://logistics-five-roan.vercel.app/) • [📖 Documentation](https://docs.zama.ai/) • [💬 Discord](https://discord.gg/zama)
+[🌐 Live Demo](https://logistics-five-roan.vercel.app/) • [📹 Demo Video](https://github.com/ClarenceRuth/cipher-shipment-stream/blob/main/logistics.mp4) • [📖 Documentation](https://docs.zama.ai/) • [💬 Discord](https://discord.gg/zama)
+
+---
+
+### 🔗 Quick Links
+
+- **📱 Live Application**: https://logistics-five-roan.vercel.app/
+- **🎬 Demo Video**: https://github.com/ClarenceRuth/cipher-shipment-stream/blob/main/logistics.mp4
+- **📊 Sepolia Contract**: https://sepolia.etherscan.io/address/0x2dCA729AA0dafE57A5fe168134B1A3b5219694cF
+- **📦 Repository**: https://github.com/ClarenceRuth/cipher-shipment-stream
+- **🏗️ Zama FHEVM**: https://docs.zama.ai/fhevm
 
 </div>
