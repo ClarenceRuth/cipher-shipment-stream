@@ -46,7 +46,7 @@ Traditional driver performance systems require exposing sensitive business data 
 - **Live Demo**: Deployed on Vercel at https://logistics-five-roan.vercel.app/
 - **Testnet Contract**: Deployed on Sepolia at `0x2dCA729AA0dafE57A5fe168134B1A3b5219694cF`
 - **Demo Video**: Available at https://github.com/ClarenceRuth/cipher-shipment-stream/blob/main/logistics.mp4
-- **Comprehensive Documentation**: 476-line detailed README with full API reference
+- **Comprehensive Documentation**: Detailed README with full API reference
 
 ## ✨ Key Features
 
@@ -70,7 +70,7 @@ Traditional driver performance systems require exposing sensitive business data 
 
 ### 🛠️ Developer Experience
 - **Type Safety**: Full TypeScript integration with generated contract bindings
-- **Comprehensive Testing**: 100% test coverage with automated CI/CD
+- **Comprehensive Testing**: Test suite with automated testing
 - **Modular Architecture**: Clean separation of concerns and reusable components
 - **Extensive Documentation**: Detailed API docs and usage examples
 
@@ -148,7 +148,7 @@ Before installing, ensure you have the following:
 ```bash
 # Clone the repository
 git clone https://github.com/ClarenceRuth/cipher-shipment-stream.git
-cd cipher-shipment-stream/pro28
+cd cipher-shipment-stream
 
 # Install all dependencies (recommended)
 make install
@@ -192,11 +192,8 @@ npm run typechain
 
 3. **Local Development**
 ```bash
-# Start local FHEVM node
-npm run node
-
 # Deploy contracts locally
-npm run deploy:localhost
+npm run deploy
 
 # Start frontend development server
 cd frontend && npm run dev
@@ -277,56 +274,41 @@ cd frontend && npm run build
 ### Test Coverage
 
 ```bash
-# Run all tests with coverage
-npm run test:coverage
+# Run all tests
+npm run test
 
-# Run specific test suites
-npm run test:unit       # Unit tests
-npm run test:integration # Integration tests
-npm run test:e2e        # End-to-end tests
+# Run tests on Sepolia network
+npm run test:sepolia
 
 # Gas usage analysis
 npm run test:gas
+
+# Code coverage
+npm run coverage
 ```
 
 ### Test Structure
 
 ```
 test/
-├── unit/           # Unit tests for individual functions
-├── integration/    # Cross-contract interaction tests
-├── security/       # Security-focused test scenarios
-└── fuzzing/        # Property-based testing
+└── DriverPerformance.test.ts  # Main test suite
 ```
-
-### Continuous Integration
-
-Automated testing runs on every PR with:
-- 100% code coverage requirement
-- Gas usage regression detection
-- Security vulnerability scanning
-- Performance benchmarking
 
 ## 🚢 Deployment
 
 ### Network Support
 
 - **Local Development**: Hardhat Network
-- **Test Networks**: Sepolia, Mumbai, Fuji
-- **Main Networks**: Ethereum Mainnet, Polygon, Avalanche
+- **Test Networks**: Sepolia
 
 ### Deployment Scripts
 
 ```bash
-# Local deployment
-npm run deploy:localhost
+# Deploy to default network
+npm run deploy
 
-# Testnet deployment
+# Deploy to Sepolia testnet
 npm run deploy:sepolia
-npm run deploy:mumbai
-
-# Mainnet deployment (requires confirmation)
-npm run deploy:mainnet
 ```
 
 ### Environment Variables
@@ -406,14 +388,14 @@ const result = useReadContract({
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Please see our [Contributing Guide](CONTRIBUTING.md) for detailed information.
+We welcome contributions from the community!
 
 ### Development Setup
 
 ```bash
 # Fork and clone
 git clone https://github.com/your-username/cipher-shipment-stream.git
-cd cipher-shipment-stream/pro28
+cd cipher-shipment-stream
 
 # Install dependencies
 make install

@@ -83,19 +83,19 @@ export default function SystemInfo({ contractAddress, userAddress }: SystemInfoP
   const isAnyLoading = thresholdLoading || countLoading || pauseLoading;
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-blue-200">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center">
-            <Info className="w-4 h-4 text-white" />
+    <div className="bg-white/90 backdrop-blur-sm shadow-xl rounded-2xl p-6 hover-scale border border-gray-100">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-indigo-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg glow">
+            <Info className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">System Information</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">System Information</h2>
         </div>
 
         {hasErrors && (
           <button
             onClick={handleRetry}
-            className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            className="px-4 py-2 text-xs bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105"
           >
             Retry ({retryCount})
           </button>
@@ -103,70 +103,76 @@ export default function SystemInfo({ contractAddress, userAddress }: SystemInfoP
       </div>
 
       {hasErrors && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <h3 className="text-red-800 font-medium text-sm mb-2">Connection Issues Detected</h3>
-          <div className="space-y-1 text-xs text-red-700">
-            {thresholdError && <p>• Failed to load target threshold: {thresholdError.message}</p>}
-            {countError && <p>• Failed to load driver count: {countError.message}</p>}
-            {pauseError && <p>• Failed to load pause status: {pauseError.message}</p>}
+        <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-xl p-4 mb-4 shadow-md slide-in">
+          <h3 className="text-red-800 font-semibold text-sm mb-3 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-red-500 pulse"></div>
+            Connection Issues Detected
+          </h3>
+          <div className="space-y-2 text-xs text-red-700 mb-3">
+            {thresholdError && <p className="flex items-center gap-2">• <span>Failed to load target threshold: {thresholdError.message}</span></p>}
+            {countError && <p className="flex items-center gap-2">• <span>Failed to load driver count: {countError.message}</span></p>}
+            {pauseError && <p className="flex items-center gap-2">• <span>Failed to load pause status: {pauseError.message}</span></p>}
           </div>
-          <p className="text-xs text-red-600 mt-2">
+          <p className="text-xs text-red-600 bg-white/50 rounded-lg p-2">
             Click retry to attempt reconnection. If issues persist, check network connection and contract address.
           </p>
         </div>
       )}
 
       <div className="space-y-0">
-        <div className="flex justify-between items-center py-3 border-b border-gray-100">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="flex justify-between items-center py-4 border-b border-gray-100 hover:bg-indigo-50/50 transition-colors rounded-lg px-2 -mx-2">
+          <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
             Target Threshold
           </label>
           <div className="text-right">
             {thresholdLoading ? (
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 border border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin"></div>
                 <span className="text-sm text-gray-500">Loading...</span>
               </div>
             ) : targetThreshold !== undefined ? (
-              <p className="text-sm text-gray-600">{targetThreshold.toString()} orders</p>
+              <p className="text-sm font-semibold text-indigo-600">{targetThreshold.toString()} orders</p>
             ) : (
               <p className="text-sm text-red-500">Failed to load</p>
             )}
           </div>
         </div>
 
-        <div className="flex justify-between items-center py-3 border-b border-gray-100">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="flex justify-between items-center py-4 border-b border-gray-100 hover:bg-purple-50/50 transition-colors rounded-lg px-2 -mx-2">
+          <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
             Registered Drivers
           </label>
           <div className="text-right">
             {countLoading ? (
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 border border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin"></div>
                 <span className="text-sm text-gray-500">Loading...</span>
               </div>
             ) : driverCount !== undefined ? (
-              <p className="text-sm text-gray-600">{driverCount.toString()} drivers</p>
+              <p className="text-sm font-semibold text-purple-600">{driverCount.toString()} drivers</p>
             ) : (
               <p className="text-sm text-red-500">Failed to load</p>
             )}
           </div>
         </div>
 
-        <div className="flex justify-between items-center py-3 border-b border-gray-100">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="flex justify-between items-center py-4 border-b border-gray-100 hover:bg-green-50/50 transition-colors rounded-lg px-2 -mx-2">
+          <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
             System Status
           </label>
           <div className="text-right">
             {pauseLoading ? (
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 border border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+                <div className="w-4 h-4 border-2 border-green-300 border-t-green-600 rounded-full animate-spin"></div>
                 <span className="text-sm text-gray-500">Checking...</span>
               </div>
             ) : isPaused !== undefined ? (
               <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${isPaused ? 'bg-red-500' : 'bg-green-500'}`}></div>
-                <p className={`text-sm ${isPaused ? 'text-red-600' : 'text-green-600'}`}>
+                <div className={`w-3 h-3 rounded-full ${isPaused ? 'bg-red-500 pulse' : 'bg-green-500 pulse'}`}></div>
+                <p className={`text-sm font-semibold ${isPaused ? 'text-red-600' : 'text-green-600'}`}>
                   {isPaused ? 'Paused' : 'Active'}
                 </p>
               </div>
@@ -176,21 +182,23 @@ export default function SystemInfo({ contractAddress, userAddress }: SystemInfoP
           </div>
         </div>
 
-        <div className="flex justify-between items-center py-3 border-b border-gray-100">
-          <label className="text-sm font-medium text-gray-700">
+        <div className="flex justify-between items-center py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors rounded-lg px-2 -mx-2">
+          <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-gray-400"></div>
             Contract Address
           </label>
-          <p className="text-sm text-gray-600 font-mono text-right max-w-48 truncate" title={contractAddress}>
+          <p className="text-sm text-gray-600 font-mono text-right max-w-48 truncate hover:text-indigo-600 transition-colors" title={contractAddress}>
             {contractAddress}
           </p>
         </div>
 
         {userAddress && (
-          <div className="flex justify-between items-center py-3">
-            <label className="text-sm font-medium text-gray-700">
+          <div className="flex justify-between items-center py-4 hover:bg-blue-50 transition-colors rounded-lg px-2 -mx-2">
+            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
               Connected Address
             </label>
-            <p className="text-sm text-gray-600 font-mono text-right max-w-48 truncate" title={userAddress}>
+            <p className="text-sm text-gray-600 font-mono text-right max-w-48 truncate hover:text-blue-600 transition-colors" title={userAddress}>
               {userAddress}
             </p>
           </div>
