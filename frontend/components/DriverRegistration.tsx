@@ -110,7 +110,7 @@ export default function DriverRegistration({ contractAddress }: DriverRegistrati
     if (validationErrors.length > 0) {
       setValidationErrors([]);
     }
-  }, [driverAddress, driverName, licenseNumber]);
+  }, [driverAddress, driverName, licenseNumber, validationErrors.length]);
 
   if (!isConnected) {
     return (

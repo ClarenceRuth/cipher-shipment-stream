@@ -234,8 +234,8 @@ export default function SubmitOrderCount({ contractAddress, userAddress }: Submi
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>
-              After submitting, click <strong>"Evaluate Performance"</strong> to get encrypted evaluation result, 
-              then click <strong>"Decrypt Result"</strong> to see the decrypted performance.
+              After submitting, click <strong>&quot;Evaluate Performance&quot;</strong> to get encrypted evaluation result, 
+              then click <strong>&quot;Decrypt Result&quot;</strong> to see the decrypted performance.
             </span>
           </p>
         </div>
